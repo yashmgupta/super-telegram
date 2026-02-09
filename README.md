@@ -178,7 +178,7 @@ Contributions, issues, and feature requests are welcome!
 
 **Yash Gupta** - [@yashmgupta](https://github.com/yashmgupta)
 
-Project Link: [https://github.com/yashmgupta/system-audio-recorder](https://github.com/yashmgupta/system-audio-recorder)
+Project Link: [https://github.com/yashmgupta/super-telegram](https://github.com/yashmgupta/super-telegram)
 
 ---
 
