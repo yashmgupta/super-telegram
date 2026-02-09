@@ -1,4 +1,4 @@
-# 🎧 System Audio Recorder
+# 🎧 Super Telegram
 
 <div align="center">
 
@@ -40,8 +40,8 @@
 ### Option 2: Clone Repository
 
 ```bash
-git clone https://github.com/yashmgupta/system-audio-recorder.git
-cd system-audio-recorder
+git clone https://github.com/yashmgupta/super-telegram.git
+cd super-telegram
 # Open index.html in your browser or serve with a local server
 ```
 
@@ -50,7 +50,7 @@ cd system-audio-recorder
 1. Fork this repository
 2. Go to Settings > Pages
 3. Select main branch as source
-4. Your app will be live at `https://yourusername.github.io/system-audio-recorder`
+4. Your app will be live at `https://yourusername.github.io/super-telegram`
 
 ## 📖 Usage
 
@@ -77,115 +77,76 @@ cd system-audio-recorder
 ## 🎯 Use Cases
 
 - 📚 **Education**: Record online lectures, webinars, or tutorials
-- 🎮 **Gaming**: Capture game audio for streaming or editing
-- 🎼 **Music**: Record web-based music production or DJ sessions
-- 💼 **Professional**: Save important meetings, presentations, or calls
-- 🎬 **Content Creation**: Extract audio from videos or create podcasts
-- 🔊 **Audio Archiving**: Save streaming audio content
+- 💼 **Professional**: Capture conference calls, meetings, or presentations
+- 🎮 **Gaming**: Record game audio for streaming or content creation
+- 🎵 **Music**: Capture online radio, streaming music, or audio from videos
+- 🔧 **Technical**: Record system sounds for debugging or testing
 
 ## 🛠️ Technical Details
 
 ### Browser Compatibility
 
-| Browser | Support | Notes |
-|---------|---------|-------|
-| Chrome 94+ | ✅ Full | Recommended |
-| Edge 94+ | ✅ Full | Recommended |
-| Firefox 90+ | ✅ Full | May require "media.getdisplaymedia.audio.enabled" flag |
-| Safari 13+ | ⚠️ Limited | No system audio capture support |
-| Opera 80+ | ✅ Full | Chromium-based |
+| Browser | System Audio | Microphone | Visualizer |
+|---------|--------------|------------|------------|
+| Chrome 94+ | ✅ | ✅ | ✅ |
+| Edge 94+ | ✅ | ✅ | ✅ |
+| Firefox 90+ | ✅ | ✅ | ✅ |
+| Safari 15.4+ | ⚠️ Limited | ✅ | ✅ |
+| Opera 80+ | ✅ | ✅ | ✅ |
 
-### Technologies Used
+### APIs Used
 
-- **MediaDevices API** - Screen/audio capture via `getDisplayMedia()`
-- **MediaRecorder API** - Audio recording and encoding
-- **Web Audio API** - Real-time visualization and audio processing
-- **Canvas API** - Audio frequency spectrum rendering
-- **Blob API** - File handling and downloads
+- **MediaDevices.getDisplayMedia()**: Captures screen/tab audio
+- **MediaDevices.getUserMedia()**: Captures microphone input
+- **MediaRecorder API**: Records audio streams
+- **Web Audio API**: Provides real-time visualization
+- **Blob API**: Handles audio data and downloads
 
-### Audio Formats
+## 📋 Requirements
 
-- **WebM** (Opus codec) - Best compression, widely supported
-- **WAV** (PCM 16-bit) - Uncompressed, high quality, large files
-- **OGG** (Vorbis/Opus) - Open format, good compression
-- **MP3** - Converted from WAV (note: actual MP3 encoding requires additional libraries)
-
-## ⚙️ Customization
-
-The application is built with vanilla JavaScript and can be easily customized:
-
-```javascript
-// Change recording time slice
-mediaRecorder.start(100); // milliseconds
-
-// Modify visualizer FFT size
-analyser.fftSize = 256; // Powers of 2: 128, 256, 512, 1024, 2048
-
-// Adjust audio quality
-const options = {
-  audioBitsPerSecond: 128000 // 128 kbps
-};
-```
-
-## 🔐 Privacy & Security
-
-- ✅ All audio processing happens **locally** in your browser
-- ✅ No data is sent to external servers
-- ✅ Requires explicit user permission before recording
-- ✅ Open-source code - fully auditable
-- ✅ Works offline after initial page load
-
-## 🐛 Troubleshooting
-
-### "No audio track detected" Error
-
-**Solution**: When prompted, make sure to check the "**Share audio**" or "**Share system audio**" checkbox in the browser's sharing dialog.
-
-### Firefox: No audio in recording
-
-**Solution**: Enable system audio capture:
-1. Type `about:config` in address bar
-2. Search for `media.getdisplaymedia.audio.enabled`
-3. Set to `true`
-
-### Safari: Cannot record system audio
-
-**Issue**: Safari doesn't support system audio capture via `getDisplayMedia()`.
-
-**Workaround**: Use Chrome, Edge, or Firefox for system audio recording.
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Modern web browser with support for:
+  - MediaRecorder API
+  - getDisplayMedia API
+  - Web Audio API
+- HTTPS connection (or localhost for development)
+- Permissions for:
+  - Screen/Tab sharing
+  - Microphone access (optional)
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+Contributions are welcome! Here's how you can help:
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 🌟 Acknowledgments
+## 📄 License
 
-- Inspired by modern audio recording tools
-- Built with ❤️ using Web APIs
-- UI design influenced by glassmorphism trends
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Contact
+## 🙏 Acknowledgments
 
-**Yash Gupta** - [@yashmgupta](https://github.com/yashmgupta)
+- Built with vanilla JavaScript - no frameworks needed!
+- Icons and badges from [Shields.io](https://shields.io)
+- Inspired by the need for a simple, privacy-focused audio recording solution
 
-Project Link: [https://github.com/yashmgupta/super-telegram](https://github.com/yashmgupta/super-telegram)
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+- 🐛 [Open an issue](https://github.com/yashmgupta/super-telegram/issues)
+- 💡 [Request a feature](https://github.com/yashmgupta/super-telegram/issues/new)
+- ⭐ Star this repository if you find it useful!
 
 ---
 
 <div align="center">
 
-**If you found this useful, please consider giving it a ⭐ star!**
+Made with ❤️ by [yashmgupta](https://github.com/yashmgupta)
 
-Made with 💜 by [Yash Gupta](https://github.com/yashmgupta)
+**[⬆ Back to Top](#-super-telegram)**
 
 </div>
