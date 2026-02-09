@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Audio Recorder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 520px;
+            max-width: 95vw;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        /* Visualizer */
+        .visualizer-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        canvas#visualizer {
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+        }
+
+        .timer {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            color: #fff;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #555;
+            display: inline-block;
+        }
+
+        .status .dot.recording {
+            background: #ff4444;
+            animation: pulse 1s infinite;
+        }
+
+        .status .dot.paused {
+            background: #ffaa00;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:not(:disabled):hover {
+            transform: scale(1.1);
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #ff4444, #cc0033);
+            box-shadow: 0 4px 20px rgba(255, 68, 68, 0.4);
+        }
+
+        .btn-record.active {
+            animation: pulseBtn 1.5s infinite;
+        }
+
+        @keyframes pulseBtn {
+            0%, 100% { box-shadow: 0 4px 20px rgba(255, 68, 68, 0.4); }
+            50% { box-shadow: 0 4px 35px rgba(255, 68, 68, 0.8); }
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #ffaa00, #ff8800);
+            box-shadow: 0 4px 20px rgba(255, 170, 0, 0.3);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Settings */
+        .settings {
+            margin-bottom: 25px;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+        }
+
+        .setting-group select,
+        .setting-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .setting-group select:focus,
+        .setting-group input:focus {
+            border-color: #667eea;
+        }
+
+        .setting-group select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .setting-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .setting-row .setting-group {
+            flex: 1;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+
+        /* Recordings list */
+        .recordings {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .recordings h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .recording-item {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.3s;
+        }
+
+        .recording-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .recording-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .recording-info .name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recording-info .meta {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+        }
+
+        .recording-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-sm.download {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-sm.download:hover {
+            background: rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-sm.delete {
+            background: rgba(255, 68, 68, 0.2);
+        }
+
+        .btn-sm.delete:hover {
+            background: rgba(255, 68, 68, 0.4);
+        }
+
+        /* Scrollbar */
+        .recordings::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .recordings::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .recordings::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        /* Info banner */
+        .info-banner {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+
+        .info-banner strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 System Audio Recorder</h1>
+            <p>Record any audio playing in your browser</p>
+        </div>
+
+        <div class="info-banner">
+            <strong>💡 Tip:</strong> When prompted, select the <strong>browser tab</strong> or
+            <strong>entire screen</strong> you want to capture audio from. Make sure to check
+            <strong>"Share audio"</strong> / <strong>"Share system audio"</strong> in the dialog.
+        </div>
+
+        <!-- Visualizer -->
+        <div class="visualizer-container">
+            <canvas id="visualizer"></canvas>
+            <div class="timer" id="timer">00:00:00</div>
+            <div class="status">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">Ready</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-record" id="btnRecord" title="Start Recording">⏺</button>
+            <button class="btn btn-pause" id="btnPause" title="Pause" disabled>⏸</button>
+            <button class="btn btn-stop" id="btnStop" title="Stop & Save" disabled>⏹</button>
+        </div>
+
+        <!-- Settings -->
+        <div class="settings">
+            <div class="setting-row">
+                <div class="setting-group">
+                    <label>Output Format</label>
+                    <select id="formatSelect">
+                        <option value="webm">WebM (Audio)</option>
+                        <option value="wav">WAV</option>
+                        <option value="mp3">MP3 (via WAV convert)</option>
+                        <option value="ogg">OGG</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Audio Source</label>
+                    <select id="sourceSelect">
+                        <option value="system">System/Tab Audio Only</option>
+                        <option value="both">System + Microphone</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label>File Name</label>
+                <input type="text" id="fileName" placeholder="recording" value="recording">
+            </div>
+        </div>
+
+        <!-- Recordings -->
+        <div class="recordings" id="recordingsList">
+            <h3>📁 Recordings</h3>
+            <div id="recordingsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // ─── State ───────────────────────────────────────────────
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let stream = null;
+        let timerInterval = null;
+        let startTime = 0;
+        let pausedDuration = 0;
+        let pauseStart = 0;
+        let recordings = [];
+        let audioContext = null;
+        let analyser = null;
+        let animationId = null;
+
+        // ─── DOM ─────────────────────────────────────────────────
+        const btnRecord = document.getElementById('btnRecord');
+        const btnPause = document.getElementById('btnPause');
+        const btnStop = document.getElementById('btnStop');
+        const timerEl = document.getElementById('timer');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const formatSelect = document.getElementById('formatSelect');
+        const sourceSelect = document.getElementById('sourceSelect');
+        const fileNameInput = document.getElementById('fileName');
+        const recordingsContainer = document.getElementById('recordingsContainer');
+        const canvas = document.getElementById('visualizer');
+        const canvasCtx = canvas.getContext('2d');
+
+        // ─── Visualizer ─────────────────────────────────────────
+        function initVisualizer(srcStream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const source = audioContext.createMediaStreamSource(srcStream);
+            source.connect(analyser);
+            drawVisualizer();
+        }
+
+        function drawVisualizer() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                animationId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = canvas.clientWidth * dpr;
+                canvas.height = canvas.clientHeight * dpr;
+                canvasCtx.scale(dpr, dpr);
+                const WIDTH = canvas.clientWidth;
+                const HEIGHT = canvas.clientHeight;
+
+                canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+                const barWidth = (WIDTH / bufferLength) * 1.5;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 255;
+                    const barHeight = v * HEIGHT * 0.9;
+
+                    const gradient = canvasCtx.createLinearGradient(0, HEIGHT, 0, HEIGHT - barHeight);
+                    gradient.addColorStop(0, 'rgba(102, 126, 234, 0.8)');
+                    gradient.addColorStop(1, 'rgba(118, 75, 162, 0.8)');
+
+                    canvasCtx.fillStyle = gradient;
+                    canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth - 1, barHeight);
+
+                    x += barWidth + 1;
+                }
+            }
+            draw();
+        }
+
+        function stopVisualizer() {
+            if (animationId) cancelAnimationFrame(animationId);
+            if (audioContext) audioContext.close();
+            audioContext = null;
+            analyser = null;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // ─── Timer ───────────────────────────────────────────────
+        function startTimer() {
+            startTime = Date.now();
+            pausedDuration = 0;
+            timerInterval = setInterval(updateTimer, 100);
+        }
+
+        function updateTimer() {
+            const elapsed = Date.now() - startTime - pausedDuration;
+            const hrs = String(Math.floor(elapsed / 3600000)).padStart(2, '0');
+            const mins = String(Math.floor((elapsed % 3600000) / 60000)).padStart(2, '0');
+            const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0');
+            timerEl.textContent = `${hrs}:${mins}:${secs}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerEl.textContent = '00:00:00';
+        }
+
+        // ─── Recording ──────────────────────────────────────────
+        async function startRecording() {
+            try {
+                // Get system/tab audio via getDisplayMedia
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,       // required by API, we discard it
+                    audio: true,       // system audio
+                    preferCurrentTab: false,
+                    systemAudio: 'include'
+                });
+
+                // Check that audio track exists
+                const audioTracks = displayStream.getAudioTracks();
+                if (audioTracks.length === 0) {
+                    alert('⚠️ No audio track detected!\n\nMake sure you checked "Share audio" or "Share system audio" in the prompt dialog.');
+                    displayStream.getTracks().forEach(t => t.stop());
+                    return;
+                }
+
+                // Stop video tracks (we only want audio)
+                displayStream.getVideoTracks().forEach(t => t.stop());
+
+                // Build audio-only stream
+                let finalStream;
+
+                if (sourceSelect.value === 'both') {
+                    // Combine system audio + mic
+                    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const ctx = new AudioContext();
+                    const dest = ctx.createMediaStreamDestination();
+                    ctx.createMediaStreamSource(displayStream).connect(dest);
+                    ctx.createMediaStreamSource(micStream).connect(dest);
+                    finalStream = dest.stream;
+                } else {
+                    finalStream = new MediaStream(audioTracks);
+                }
+
+                stream = finalStream;
+
+                // Determine MIME type
+                let mimeType = 'audio/webm;codecs=opus';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    mimeType = 'audio/webm';
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    mimeType = 'audio/ogg;codecs=opus';
+                }
+
+                mediaRecorder = new MediaRecorder(finalStream, { mimeType });
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => handleStop();
+
+                // If screen sharing stops externally
+                displayStream.getAudioTracks()[0].onended = () => {
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        stopRecording();
+                    }
+                };
+
+                mediaRecorder.start(100); // collect every 100ms
+                initVisualizer(finalStream);
+                startTimer();
+                setUIState('recording');
+
+            } catch (err) {
+                console.error('Recording failed:', err);
+                if (err.name === 'NotAllowedError') {
+                    alert('Permission denied. Please allow screen/audio sharing to record.');
+                } else {
+                    alert('Error starting recording: ' + err.message);
+                }
+            }
+        }
+
+        function pauseRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.pause();
+                pauseStart = Date.now();
+                setUIState('paused');
+            } else if (mediaRecorder && mediaRecorder.state === 'paused') {
+                mediaRecorder.resume();
+                pausedDuration += Date.now() - pauseStart;
+                setUIState('recording');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
+            stopTimer();
+            stopVisualizer();
+        }
+
+        // ─── Post-recording processing ──────────────────────────
+        async function handleStop() {
+            const format = formatSelect.value;
+            const rawBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+            let finalBlob, ext, mime;
+
+            if (format === 'wav') {
+                finalBlob = await convertToWav(rawBlob);
+                ext = 'wav';
+                mime = 'audio/wav';
+            } else if (format === 'mp3') {
+                // We convert to WAV (browser-native). True MP3 encoding needs a library.
+                finalBlob = await convertToWav(rawBlob);
+                ext = 'wav';
+                mime = 'audio/wav';
+                // Note: labeled mp3 but saved as wav for compatibility
+            } else if (format === 'ogg') {
+                // If browser recorded as ogg already, use it; otherwise keep webm
+                if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    finalBlob = rawBlob;
+                } else {
+                    finalBlob = rawBlob;
+                }
+                ext = 'ogg';
+                mime = 'audio/ogg';
+            } else {
+                finalBlob = rawBlob;
+                ext = 'webm';
+                mime = 'audio/webm';
+            }
+
+            const name = fileNameInput.value.trim() || 'recording';
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const fullName = `${name}_${timestamp}.${ext}`;
+            const url = URL.createObjectURL(finalBlob);
+            const duration = timerEl.textContent;
+            const size = formatBytes(finalBlob.size);
+
+            recordings.unshift({ fullName, url, duration, size, mime, blob: finalBlob });
+            renderRecordings();
+            resetTimer();
+            setUIState('ready');
+        }
+
+        // ─── WAV Conversion ─────────────────────────────────────
+        async function convertToWav(webmBlob) {
+            const arrayBuffer = await webmBlob.arrayBuffer();
+            const ctx = new OfflineAudioContext(2, 1, 44100);
+
+            let audioBuffer;
+            try {
+                audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+            } catch {
+                // If decoding fails, return original
+                return webmBlob;
+            }
+
+            const numChannels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const length = audioBuffer.length;
+
+            // Interleave channels
+            const interleaved = new Float32Array(length * numChannels);
+            for (let ch = 0; ch < numChannels; ch++) {
+                const channelData = audioBuffer.getChannelData(ch);
+                for (let i = 0; i < length; i++) {
+                    interleaved[i * numChannels + ch] = channelData[i];
+                }
+            }
+
+            // Convert to 16-bit PCM
+            const pcm = new Int16Array(interleaved.length);
+            for (let i = 0; i < interleaved.length; i++) {
+                const s = Math.max(-1, Math.min(1, interleaved[i]));
+                pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+
+            // Build WAV file
+            const wavBuffer = new ArrayBuffer(44 + pcm.length * 2);
+            const view = new DataView(wavBuffer);
+
+            function writeString(offset, str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+            }
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + pcm.length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, pcm.length * 2, true);
+
+            const pcmBytes = new Uint8Array(wavBuffer, 44);
+            const pcmView = new Uint8Array(pcm.buffer);
+            pcmBytes.set(pcmView);
+
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        }
+
+        // ─── UI State ────────────────────────────────────────────
+        function setUIState(state) {
+            statusDot.className = 'dot';
+            btnRecord.classList.remove('active');
+
+            switch (state) {
+                case 'recording':
+                    statusDot.classList.add('recording');
+                    statusText.textContent = 'Recording...';
+                    btnRecord.disabled = true;
+                    btnPause.disabled = false;
+                    btnStop.disabled = false;
+                    btnPause.innerHTML = '⏸';
+                    btnRecord.classList.add('active');
+                    formatSelect.disabled = true;
+                    sourceSelect.disabled = true;
+                    break;
+                case 'paused':
+                    statusDot.classList.add('paused');
+                    statusText.textContent = 'Paused';
+                    btnPause.innerHTML = '▶';
+                    break;
+                case 'ready':
+                default:
+                    statusText.textContent = 'Ready';
+                    btnRecord.disabled = false;
+                    btnPause.disabled = true;
+                    btnStop.disabled = true;
+                    btnPause.innerHTML = '⏸';
+                    formatSelect.disabled = false;
+                    sourceSelect.disabled = false;
+                    break;
+            }
+        }
+
+        // ─── Render Recordings ───────────────────────────────────
+        function renderRecordings() {
+            if (recordings.length === 0) {
+                recordingsContainer.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;text-align:center;">No recordings yet</p>';
+                return;
+            }
+
+            recordingsContainer.innerHTML = recordings.map((r, i) => `
+                <div class="recording-item">
+                    <div class="recording-info">
+                        <div class="name">${r.fullName}</div>
+                        <div class="meta">${r.duration} · ${r.size}</div>
+                        <audio controls src="${r.url}" style="width:100%;height:32px;margin-top:6px;"></audio>
+                    </div>
+                    <div class="recording-actions">
+                        <button class="btn-sm download" onclick="downloadRecording(${i})" title="Download">⬇</button>
+                        <button class="btn-sm delete" onclick="deleteRecording(${i})" title="Delete">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadRecording(index) {
+            const r = recordings[index];
+            const a = document.createElement('a');
+            a.href = r.url;
+            a.download = r.fullName;
+            a.click();
+        }
+
+        function deleteRecording(index) {
+            URL.revokeObjectURL(recordings[index].url);
+            recordings.splice(index, 1);
+            renderRecordings();
+        }
+
+        // ─── Utility ─────────────────────────────────────────────
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        // ─── Event Listeners ─────────────────────────────────────
+        btnRecord.addEventListener('click', startRecording);
+        btnPause.addEventListener('click', pauseRecording);
+        btnStop.addEventListener('click', stopRecording);
+
+        // Init
+        renderRecordings();
+    </script>
+</body>
+</html>
