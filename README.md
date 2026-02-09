@@ -9,7 +9,7 @@
 
 **A beautiful, zero-dependency web application to record system audio directly from your browser**
 
-[Live Demo](#) • [Features](#features) • [Installation](#installation) • [Usage](#usage)
+[🚀 Live Demo](https://yashmgupta.github.io/super-telegram/) • [Features](#features) • [Installation](#installation) • [Usage](#usage)
 
 </div>
 
@@ -30,14 +30,18 @@
 
 ## 🚀 Quick Start
 
-### Option 1: Direct Download
+### Option 1: Use Live Demo
+
+**[Try it now!](https://yashmgupta.github.io/super-telegram/)** - No installation required!
+
+### Option 2: Direct Download
 
 1. Download `index.html` from this repository
 2. Open the file in a modern web browser (Chrome, Edge, Firefox recommended)
 3. Click "Start Recording" and grant permissions
 4. Start recording!
 
-### Option 2: Clone Repository
+### Option 3: Clone Repository
 
 ```bash
 git clone https://github.com/yashmgupta/super-telegram.git
@@ -45,7 +49,7 @@ cd super-telegram
 # Open index.html in your browser or serve with a local server
 ```
 
-### Option 3: Deploy to GitHub Pages
+### Option 4: Deploy to Your Own GitHub Pages
 
 1. Fork this repository
 2. Go to Settings > Pages
